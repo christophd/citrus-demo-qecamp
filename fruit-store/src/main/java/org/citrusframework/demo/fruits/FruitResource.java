@@ -45,6 +45,9 @@ public class FruitResource {
     @RestClient
     MarketClient marketClient;
 
+    @Inject
+    FruitEvents fruitEvents;
+
     @GET
     @Operation(operationId = "listFruits")
     public List<Fruit> list() {
@@ -109,6 +112,7 @@ public class FruitResource {
         }
 
         store.remove(Long.parseLong(id));
+        fruitEvents.onRemoved(id);
         return Response.noContent().build();
     }
 }

@@ -21,16 +21,22 @@ import com.consol.citrus.http.client.HttpClient;
 import com.consol.citrus.http.client.HttpClientBuilder;
 import com.consol.citrus.http.server.HttpServer;
 import com.consol.citrus.http.server.HttpServerBuilder;
+import com.consol.citrus.kafka.embedded.EmbeddedKafkaServer;
+import com.consol.citrus.kafka.embedded.EmbeddedKafkaServerBuilder;
+import com.consol.citrus.kafka.endpoint.KafkaEndpoint;
+import com.consol.citrus.kafka.endpoint.KafkaEndpointBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 public class EndpointConfig {
 
     private static final int FRUIT_STORE_SERVICE_PORT = 8080;
     private static final int MARKET_SERVICE_PORT = 8081;
+    private static final int KAFKA_BROKER_PORT = 9090;
 
     @Bean
     public HttpClient fruitStoreClient() {
@@ -45,6 +51,23 @@ public class EndpointConfig {
                 .port(MARKET_SERVICE_PORT)
                 .autoStart(true)
             .build();
+    }
+
+    @Bean
+    @DependsOn("embeddedKafkaServer")
+    public KafkaEndpoint fruitEvents() {
+        return new KafkaEndpointBuilder()
+                .server(String.format("localhost:%s", KAFKA_BROKER_PORT))
+                .topic("fruits.events")
+                .build();
+    }
+
+    @Bean
+    public EmbeddedKafkaServer embeddedKafkaServer() {
+        return new EmbeddedKafkaServerBuilder()
+                .kafkaServerPort(KAFKA_BROKER_PORT)
+                .topics("fruits.events")
+                .build();
     }
 
     @Bean(destroyMethod = "close")
