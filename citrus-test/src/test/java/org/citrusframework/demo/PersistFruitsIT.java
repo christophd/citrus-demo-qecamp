@@ -15,61 +15,69 @@
  * limitations under the License.
  */
 
-package org.citrusframework.demo.behavior;
+package org.citrusframework.demo;
 
-import com.consol.citrus.TestActionRunner;
-import com.consol.citrus.TestBehavior;
-import com.consol.citrus.actions.AbstractTestAction;
-import com.consol.citrus.context.TestContext;
+import javax.sql.DataSource;
+import java.math.BigDecimal;
+import java.util.Collections;
+
+import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
+import com.consol.citrus.junit.JUnit4CitrusSupport;
 import com.consol.citrus.message.builder.ObjectMappingPayloadBuilder;
+import org.citrusframework.demo.fruits.Category;
 import org.citrusframework.demo.fruits.Fruit;
-import org.springframework.http.HttpHeaders;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 
+import static com.consol.citrus.actions.ExecuteSQLQueryAction.Builder.query;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 import static com.consol.citrus.validation.json.JsonPathVariableExtractor.Builder.jsonPathExtractor;
 
 /**
  * @author Christoph Deppisch
  */
-public class AddFruitBehavior implements TestBehavior {
+@ContextConfiguration(classes = EndpointConfig.class)
+public class PersistFruitsIT extends JUnit4CitrusSupport {
 
-    private final HttpClient client;
-    private final Fruit fruit;
+    @Autowired
+    private HttpClient fruitStoreClient;
 
-    private String idVariable = "id";
+    @Autowired
+    private DataSource fruitsDataSource;
 
-    public AddFruitBehavior(Fruit fruit, HttpClient client) {
-        this.fruit = fruit;
-        this.client = client;
-    }
+    @Test
+    @CitrusTest
+    public void shouldPersistFruits() {
+        Fruit fruit = getTestFruit();
 
-    @Override
-    public void apply(TestActionRunner runner) {
-        runner.run(http().client(client)
+        when(http().client(fruitStoreClient)
                 .send()
                 .post("/fruits")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .payload(new ObjectMappingPayloadBuilder(fruit)));
 
-        runner.run(http().client(client)
+        then(http().client(fruitStoreClient)
                 .receive()
                 .response(HttpStatus.CREATED)
                 .process(jsonPathExtractor()
-                        .expression("$.id", idVariable)));
+                        .expression("$.id", "id")));
 
-        runner.run(new AbstractTestAction() {
-            @Override
-            public void doExecute(TestContext context) {
-                fruit.setId(Long.parseLong(context.getVariable(idVariable)));
-            }
-        });
+        then(query(fruitsDataSource)
+            .statement("SELECT id, name FROM fruit WHERE id=${id}")
+            .validate("name", fruit.getName()));
     }
 
-    public AddFruitBehavior withIdVariable(String name) {
-        this.idVariable = name;
-        return this;
+    private Fruit getTestFruit() {
+        Fruit fruit = new Fruit();
+        fruit.setName("Peach");
+        fruit.setCategory(new Category("pomme"));
+        fruit.setStatus(Fruit.Status.PENDING);
+        fruit.setPrice(BigDecimal.valueOf(0.00D));
+        fruit.setTags(Collections.singletonList("summer"));
+        return fruit;
     }
 }

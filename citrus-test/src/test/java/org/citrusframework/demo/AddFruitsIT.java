@@ -18,6 +18,7 @@
 package org.citrusframework.demo;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
@@ -32,7 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 
-import static com.consol.citrus.actions.CreateVariablesAction.Builder.createVariable;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 /**
@@ -47,14 +47,11 @@ public class AddFruitsIT extends JUnit4CitrusSupport {
     @Test
     @CitrusTest
     public void shouldAddFruits() {
-        given(createVariable("id", "citrus:randomNumber(5)"));
-
         when(http().client(fruitStoreClient)
                 .send()
                 .post("/fruits")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .payload("{" +
-                    "\"id\": ${id}," +
                     "\"name\": \"Banana\"," +
                     "\"description\": \"citrus:randomString(10)\"," +
                     "\"category\": {" +
@@ -102,11 +99,11 @@ public class AddFruitsIT extends JUnit4CitrusSupport {
 
     private Fruit getTestFruit() {
         Fruit fruit = new Fruit();
-        fruit.name = "Blueberry";
-        fruit.category = new Category(3L, "berry");
-        fruit.status = Fruit.Status.PENDING;
-        fruit.price = BigDecimal.valueOf(0.00D);
-        fruit.tags = new String[] {"smoothie"};
+        fruit.setName("Blueberry");
+        fruit.setCategory(new Category("berry"));
+        fruit.setStatus(Fruit.Status.PENDING);
+        fruit.setPrice(BigDecimal.valueOf(0.00D));
+        fruit.setTags(Collections.singletonList("smoothie"));
         return fruit;
     }
 }

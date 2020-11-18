@@ -25,7 +25,6 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
-import org.jboss.logging.Logger;
 
 /**
  * @author Christoph Deppisch
@@ -42,7 +41,6 @@ public class HomeResource {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance index() {
-        Logger.getLogger("FRUITS").info(store.list());
-        return index.data("fruits", store.list());
+        return index.data("fruits", store.findAll());
     }
 }

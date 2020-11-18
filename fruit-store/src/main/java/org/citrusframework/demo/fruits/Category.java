@@ -17,19 +17,51 @@
 
 package org.citrusframework.demo.fruits;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.SequenceGenerator;
+
 /**
  * @author Christoph Deppisch
  */
+@Entity
+@NamedQuery(name = "Categories.findByName",
+        query = "SELECT c FROM Category c WHERE c.name = :name")
 public class Category {
 
-    public long id;
+    public Long id;
     public String name;
 
     public Category() {
     }
 
-    public Category(long id, String name) {
+    public Category(Long id, String name) {
         this.id = id;
+        this.name = name;
+    }
+
+    public Category(String name) {
+        this.name = name;
+    }
+
+    @Id
+    @SequenceGenerator(name = "catSeq", sequenceName = "cat_id_seq", allocationSize = 1, initialValue = 1)
+    @GeneratedValue(generator = "catSeq")
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
         this.name = name;
     }
 }

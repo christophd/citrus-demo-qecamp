@@ -27,8 +27,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -47,18 +47,17 @@ public class FruitResource {
 
     @GET
     @Operation(operationId = "listFruits")
-    public Set<Fruit> list() {
-        return store.list();
+    public List<Fruit> list() {
+        return store.findAll();
     }
 
     @POST
     @Operation(operationId = "addFruit")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response add(Fruit fruit) {
-        if (fruit.id == null) {
-            fruit.id = store.nextId();
-        } else if (store.list().stream().anyMatch(f -> f.id.equals(fruit.id))) {
-            throw new IllegalArgumentException(String.format("Fruit with id '%s' already exists", fruit.id));
+        if (fruit.getId() != null &&
+                store.findAll().stream().anyMatch(f -> f.getId().equals(fruit.getId()))) {
+            throw new IllegalArgumentException(String.format("Fruit with id '%s' already exists", fruit.getId()));
         }
 
         store.add(fruit);
@@ -74,8 +73,8 @@ public class FruitResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        Optional<Fruit> found = store.list().stream()
-                .filter(fruit -> fruit.id.toString().equals(id))
+        Optional<Fruit> found = store.findAll().stream()
+                .filter(fruit -> fruit.getId().toString().equals(id))
                 .findFirst();
 
         if (found.isPresent()) {
@@ -93,8 +92,8 @@ public class FruitResource {
 
         if (response.getEntity() != null) {
             Fruit fruit = (Fruit) response.getEntity();
-            Price price = marketClient.getByName(fruit.name.toLowerCase());
-            fruit.price = price.value;
+            Price price = marketClient.getByName(fruit.getName().toLowerCase());
+            fruit.setPrice(price.value);
             return Response.ok(fruit).build();
         }
 
@@ -109,11 +108,8 @@ public class FruitResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        if (store.remove(Long.parseLong(id))) {
-            return Response.noContent().build();
-        }
-
-        return Response.status(Response.Status.NOT_FOUND).build();
+        store.remove(Long.parseLong(id));
+        return Response.noContent().build();
     }
 }
 

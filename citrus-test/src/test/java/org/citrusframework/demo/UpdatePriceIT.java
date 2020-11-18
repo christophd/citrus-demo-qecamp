@@ -18,6 +18,7 @@
 package org.citrusframework.demo;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
@@ -57,19 +58,19 @@ public class UpdatePriceIT extends JUnit4CitrusSupport {
 
         when(http().client(fruitStoreClient)
                 .send()
-                .get("/fruits/price/" + fruit.id)
+                .get("/fruits/price/" + fruit.getId())
                 .fork(true)
                 .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         then(http().server(marketPriceService)
                 .receive()
-                .get("/prices/fruits/" + fruit.name.toLowerCase()));
+                .get("/prices/fruits/" + fruit.getName().toLowerCase()));
 
         then(http().server(marketPriceService)
                 .send()
                 .response(HttpStatus.OK)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .payload("{ \"name\": \"" + fruit.name.toLowerCase() + "\", \"value\": ${price} }"));
+                .payload("{ \"name\": \"" + fruit.getName().toLowerCase() + "\", \"value\": ${price} }"));
 
         then(http().client(fruitStoreClient)
                 .receive()
@@ -78,11 +79,11 @@ public class UpdatePriceIT extends JUnit4CitrusSupport {
 
     private Fruit getTestFruit() {
         Fruit fruit = new Fruit();
-        fruit.name = "Peach";
-        fruit.category = new Category(1L, "pomme");
-        fruit.status = Fruit.Status.PENDING;
-        fruit.price = BigDecimal.valueOf(0.00D);
-        fruit.tags = new String[] {"summer"};
+        fruit.setName("Peach");
+        fruit.setCategory(new Category("pomme"));
+        fruit.setStatus(Fruit.Status.PENDING);
+        fruit.setPrice(BigDecimal.valueOf(0.00D));
+        fruit.setTags(Collections.singletonList("summer"));
         return fruit;
     }
 

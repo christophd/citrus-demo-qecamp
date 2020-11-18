@@ -17,12 +17,19 @@
 
 package org.citrusframework.demo.fruits;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
+
+import org.h2.tools.Server;
 
 /**
  * @author Christoph Deppisch
@@ -30,49 +37,64 @@ import java.util.concurrent.atomic.AtomicLong;
 @Singleton
 public class FruitStore {
 
-    private final Set<Fruit> fruits = Collections.newSetFromMap(Collections.synchronizedMap(new LinkedHashMap<>()));
+    @Inject
+    EntityManager em;
 
-    private final AtomicLong idSequence = new AtomicLong(1000);
+    @PostConstruct
+    public void setup() throws SQLException {
+        Server.createTcpServer().start();
 
-    public FruitStore() {
-        Category pome = new Category(1, "pome");
-        Category tropical = new Category(2, "tropical");
-        Category berry = new Category(3, "berry");
+        Category pome = new Category("pome");
+        Category tropical = new Category("tropical");
+        Category berry = new Category("berry");
 
-        Fruit apple = new Fruit(nextId(), "Apple", "Winter fruit");
-        apple.category = pome;
-        apple.tags = new String[] {"winter", "juicy"};
-        apple.price = new BigDecimal("1.59");
-        apple.status = Fruit.Status.AVAILABLE;
+        Fruit apple = new Fruit("Apple", "Winter fruit");
+        apple.setCategory(pome);
+        apple.setTags(Arrays.asList("winter", "juicy"));
+        apple.setPrice(new BigDecimal("1.59"));
+        apple.setStatus(Fruit.Status.AVAILABLE);
         add(apple);
 
-        Fruit pineapple = new Fruit(nextId(),"Pineapple", "Tropical fruit");
-        pineapple.tags = new String[] {"cocktail"};
-        pineapple.category = tropical;
-        pineapple.price = new BigDecimal("1.99");
+        Fruit pineapple = new Fruit("Pineapple", "Tropical fruit");
+        pineapple.setTags(Collections.singletonList("cocktail"));
+        pineapple.setCategory(tropical);
+        pineapple.setPrice(new BigDecimal("1.99"));
         add(pineapple);
 
-        Fruit strawberry = new Fruit(nextId(),"Strawberry", "Delicious");
-        strawberry.tags = new String[] {"summer", "smoothie"};
-        strawberry.category = berry;
-        strawberry.status= Fruit.Status.SOLD;
-        strawberry.price = new BigDecimal("2.55");
+        Fruit strawberry = new Fruit("Strawberry", "Delicious");
+        strawberry.setTags(Arrays.asList("summer", "smoothie"));
+        strawberry.setCategory(berry);
+        strawberry.setStatus(Fruit.Status.SOLD);
+        strawberry.setPrice(new BigDecimal("2.55"));
         add(strawberry);
     }
 
-    public Long nextId() {
-        return idSequence.getAndIncrement();
+    public Fruit findById(Long id) {
+        return em.createNamedQuery("Fruits.findById", Fruit.class)
+                        .setParameter("id", id)
+                        .getSingleResult();
     }
 
+    @Transactional
     public void add(Fruit fruit) {
-        fruits.add(fruit);
+        try {
+            Category category = em.createNamedQuery("Categories.findByName", Category.class)
+                            .setParameter("name", fruit.getCategory().getName())
+                            .getSingleResult();
+            fruit.setCategory(category);
+        } catch (NoResultException e) {
+            em.persist(fruit.getCategory());
+        }
+
+        em.persist(fruit);
     }
 
-    public Set<Fruit> list() {
-        return fruits;
+    public List<Fruit> findAll() {
+        return em.createNamedQuery("Fruits.findAll", Fruit.class).getResultList();
     }
 
-    public boolean remove(Long id) {
-        return fruits.removeIf(existing -> existing.id.equals(id));
+    @Transactional
+    public void remove(Long id) {
+        em.remove(findById(id));
     }
 }

@@ -30,7 +30,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SetFruit"
+                  "$ref" : "#/components/schemas/ListFruit"
                 }
               }
             }
@@ -132,6 +132,12 @@
         "enum" : [ "AVAILABLE", "PENDING", "SOLD" ],
         "type" : "string"
       },
+      "ListString" : {
+        "type" : "array",
+        "items" : {
+          "type" : "string"
+        }
+      },
       "Fruit" : {
         "type" : "object",
         "properties" : {
@@ -155,15 +161,11 @@
             "$ref" : "#/components/schemas/Status"
           },
           "tags" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
+            "$ref" : "#/components/schemas/ListString"
           }
         }
       },
-      "SetFruit" : {
-        "uniqueItems" : true,
+      "ListFruit" : {
         "type" : "array",
         "items" : {
           "$ref" : "#/components/schemas/Fruit"

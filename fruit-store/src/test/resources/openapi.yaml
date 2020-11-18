@@ -22,7 +22,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SetFruit'
+                $ref: '#/components/schemas/ListFruit'
     post:
       operationId: addFruit
       requestBody:
@@ -88,6 +88,10 @@ components:
       - PENDING
       - SOLD
       type: string
+    ListString:
+      type: array
+      items:
+        type: string
     Fruit:
       type: object
       properties:
@@ -105,11 +109,8 @@ components:
         status:
           $ref: '#/components/schemas/Status'
         tags:
-          type: array
-          items:
-            type: string
-    SetFruit:
-      uniqueItems: true
+          $ref: '#/components/schemas/ListString'
+    ListFruit:
       type: array
       items:
         $ref: '#/components/schemas/Fruit'

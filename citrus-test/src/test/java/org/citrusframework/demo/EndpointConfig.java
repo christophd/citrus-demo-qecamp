@@ -22,6 +22,7 @@ import com.consol.citrus.http.client.HttpClientBuilder;
 import com.consol.citrus.http.server.HttpServer;
 import com.consol.citrus.http.server.HttpServerBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,6 +45,19 @@ public class EndpointConfig {
                 .port(MARKET_SERVICE_PORT)
                 .autoStart(true)
             .build();
+    }
+
+    @Bean(destroyMethod = "close")
+    public BasicDataSource fruitsDataSource() {
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUrl("jdbc:h2:tcp://localhost/mem:test");
+        dataSource.setUsername("sa");
+        dataSource.setPassword("password");
+        dataSource.setInitialSize(1);
+        dataSource.setMaxTotal(3);
+        dataSource.setMaxIdle(2);
+        return dataSource;
     }
 
     @Bean
