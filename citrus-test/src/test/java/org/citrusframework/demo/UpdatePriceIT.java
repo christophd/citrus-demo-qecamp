@@ -17,9 +17,6 @@
 
 package org.citrusframework.demo;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
 import com.consol.citrus.http.server.HttpServer;
@@ -51,7 +48,8 @@ public class UpdatePriceIT extends JUnit4CitrusSupport {
     @Test
     @CitrusTest
     public void shouldUpdatePrice() {
-        Fruit fruit = getTestFruit();
+        Fruit fruit = TestHelper.createFruit("Peach",
+                new Category( "pomme"), Fruit.Status.PENDING, "summer");
 
         given(createVariable("price", "0.99"));
         given(applyBehavior(new AddFruitBehavior(fruit, fruitStoreClient)));
@@ -76,15 +74,4 @@ public class UpdatePriceIT extends JUnit4CitrusSupport {
                 .receive()
                 .response(HttpStatus.OK));
     }
-
-    private Fruit getTestFruit() {
-        Fruit fruit = new Fruit();
-        fruit.setName("Peach");
-        fruit.setCategory(new Category("pomme"));
-        fruit.setStatus(Fruit.Status.PENDING);
-        fruit.setPrice(BigDecimal.valueOf(0.00D));
-        fruit.setTags(Collections.singletonList("summer"));
-        return fruit;
-    }
-
 }

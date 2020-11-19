@@ -18,8 +18,6 @@
 package org.citrusframework.demo;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
-import java.util.Collections;
 
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
@@ -57,7 +55,8 @@ public class DeleteFruitsIT extends JUnit4CitrusSupport {
     @Test
     @CitrusTest
     public void shouldDeleteFruits() {
-        Fruit fruit = getTestFruit();
+        Fruit fruit = TestHelper.createFruit("Watermelon",
+                new Category("melon"), Fruit.Status.PENDING, "juicy");
 
         given(applyBehavior(new AddFruitBehavior(fruit, fruitStoreClient)));
 
@@ -84,16 +83,6 @@ public class DeleteFruitsIT extends JUnit4CitrusSupport {
         then(query(fruitsDataSource)
                 .statement("SELECT count(id) as found_records FROM fruit WHERE id=${id}")
                 .validate("found_records", "0"));
-    }
-
-    private Fruit getTestFruit() {
-        Fruit fruit = new Fruit();
-        fruit.setName("Watermelon");
-        fruit.setCategory(new Category("melon"));
-        fruit.setStatus(Fruit.Status.PENDING);
-        fruit.setPrice(BigDecimal.valueOf(0.00D));
-        fruit.setTags(Collections.singletonList("juicy"));
-        return fruit;
     }
 
 }

@@ -18,7 +18,6 @@
 package org.citrusframework.demo;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
@@ -91,7 +90,12 @@ public class GetFruitsIT extends JUnit4CitrusSupport {
     @Test
     @CitrusTest
     public void shouldGetFruitsWithModel() {
-        Fruit fruit = getTestFruit();
+        Fruit fruit = TestHelper.createFruit("Pineapple",
+                new Category(2L, "tropical"), Fruit.Status.PENDING, "cocktail");
+
+        fruit.setId(1001L);
+        fruit.setDescription("@ignore@");
+        fruit.setPrice(BigDecimal.valueOf(1.99D));
 
         when(http().client(fruitStoreClient)
                 .send()
@@ -102,17 +106,5 @@ public class GetFruitsIT extends JUnit4CitrusSupport {
                 .receive()
                 .response(HttpStatus.OK)
                 .payload(new ObjectMappingPayloadBuilder(fruit)));
-    }
-
-    private Fruit getTestFruit() {
-        Fruit fruit = new Fruit();
-        fruit.setId(1001L);
-        fruit.setName("Pineapple");
-        fruit.setDescription("@ignore@");
-        fruit.setCategory(new Category(2L, "tropical"));
-        fruit.setStatus(Fruit.Status.PENDING);
-        fruit.setPrice(BigDecimal.valueOf(1.99D));
-        fruit.setTags(Collections.singletonList("cocktail"));
-        return fruit;
     }
 }

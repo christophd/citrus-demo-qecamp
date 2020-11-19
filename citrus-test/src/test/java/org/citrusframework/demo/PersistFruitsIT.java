@@ -18,8 +18,6 @@
 package org.citrusframework.demo;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
-import java.util.Collections;
 
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.http.client.HttpClient;
@@ -52,7 +50,8 @@ public class PersistFruitsIT extends JUnit4CitrusSupport {
     @Test
     @CitrusTest
     public void shouldPersistFruits() {
-        Fruit fruit = getTestFruit();
+        Fruit fruit = TestHelper.createFruit("Nectarine",
+                new Category( "pomme"), Fruit.Status.PENDING, "summer");
 
         when(http().client(fruitStoreClient)
                 .send()
@@ -69,15 +68,5 @@ public class PersistFruitsIT extends JUnit4CitrusSupport {
         then(query(fruitsDataSource)
             .statement("SELECT id, name FROM fruit WHERE id=${id}")
             .validate("name", fruit.getName()));
-    }
-
-    private Fruit getTestFruit() {
-        Fruit fruit = new Fruit();
-        fruit.setName("Peach");
-        fruit.setCategory(new Category("pomme"));
-        fruit.setStatus(Fruit.Status.PENDING);
-        fruit.setPrice(BigDecimal.valueOf(0.00D));
-        fruit.setTags(Collections.singletonList("summer"));
-        return fruit;
     }
 }
